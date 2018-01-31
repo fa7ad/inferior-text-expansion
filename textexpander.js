@@ -1,84 +1,30 @@
-var textExpander = function (textObjects, dictionary) {
-    "use strict";
-    if (!dictionary || !textObjects) {
-        return;
-    }
-    if (!(textObjects instanceof Array)) {
-        textObjects = [textObjects];
-    }
+;(function (w, d) {
+  w.iExpandText = function iExpandText (opts) {
+    const { selector, dictionary } = Object.assign(
+      {
+        selector: '#input',
+        dictionary: { omg: 'oh my god', lol: 'laugh out loud' }
+      },
+      opts
+    )
+    d.querySelector(selector).addEventListener('keydown', e => {
+      if (/\W/.test(e.key)) {
+        try {
+          const word = e.target.value.split(/\W/).slice(-1)[0]
+          let caps = word.toUpperCase() === word
 
-    textObjects.forEach(function (textObject) {
-        if(textObject){
-            textObject.removeEventListener("keydown", textExpanderEventListener); //remove duplicate event listener, if any
-            textObject.addEventListener("keydown", textExpanderEventListener);
-        }
-    });
+          if (!dictionary.hasOwnProperty(word.toLowerCase())) return
 
-    function textExpanderEventListener(data) {
-        var actionKeys, dataKey;
-        if (data.key == undefined) {
-            dataKey = "r" + data.keyCode + "x"; // used "r" as a prefix and "x" as a suffix for creating unique
-            actionKeys = "r32xr188xr190xr49xr191xr186x"; // keyCode of " ,.!?;:" with prefix and suffix
-        } else {
-            dataKey = data.key;
-            actionKeys = " ,.!?;:";
+          e.target.value = e.target.value.replace(
+            new RegExp(word + '$'),
+            caps
+              ? dictionary[word.toLowerCase()].toUpperCase()
+              : dictionary[word]
+          )
+        } catch (e) {
+          console.warn(e)
         }
-
-        if (actionKeys.indexOf(dataKey) !== -1) {
-            var selection = getCaretPosition(this);
-            var result = /\S+$/.exec(this.value.slice(0, selection.end));
-            if (result) {
-                var lastWord = result[0];
-                var selectionStart = result.input.length - lastWord.length;
-                replaceLastWord(this, selectionStart, result.input.length, lastWord.toLowerCase());
-            }
-        }
-    }
-
-
-    function getCaretPosition(ctrl) {
-        var start, end;
-        if (ctrl.setSelectionRange) {
-            start = ctrl.selectionStart;
-            end = ctrl.selectionEnd;
-        } else if (document.selection && document.selection.createRange) {
-            var range = document.selection.createRange();
-            start = 0 - range.duplicate().moveStart('character', -100000);
-            end = start + range.text.length;
-        }
-        return {
-            start: start,
-            end: end
-        }
-    }
-
-    function replaceLastWord(ctrl, start, end, key) {
-        var rangeLength = end - start;
-        var replaceWith = dictionary[key];
-        if (!replaceWith) {
-            return;
-        }
-        if (ctrl.setSelectionRange) {
-            /* WebKit */
-            ctrl.focus();
-            ctrl.setSelectionRange(start, end);
-        }
-        else if (ctrl.createTextRange) {
-            /* IE */
-            var range = ctrl.createTextRange();
-            rangctrl.collapse(true);
-            rangctrl.moveEnd('character', end);
-            rangctrl.moveStart('character', start);
-            rangctrl.select();
-        }
-        else if (ctrl.selectionStart) {
-            ctrl.selectionStart = start;
-            ctrl.selectionEnd = end;
-        }
-        if (replaceWith) {
-            ctrl.value = ctrl.value.substring(0, start) + replaceWith + ctrl.value.substr(end);
-            ctrl.setSelectionRange(end + replaceWith.length, end + replaceWith.length - (rangeLength))
-        }
-    }
-
-};
+      }
+    })
+  }
+})(window, document)
