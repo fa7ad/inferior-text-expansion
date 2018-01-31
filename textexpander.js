@@ -11,7 +11,7 @@
       if (/\W/.test(e.key)) {
         try {
           const word = e.target.value.split(/\W/).slice(-1)[0]
-          let caps = word.toUpperCase() === word
+          const caps = word.toUpperCase() === word
 
           if (!dictionary.hasOwnProperty(word.toLowerCase())) return
 
